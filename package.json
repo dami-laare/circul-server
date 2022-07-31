@@ -1,0 +1,41 @@
+{
+  "name": "circul-server",
+  "version": "1.0.0",
+  "description": "",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server",
+    "dev": "SET NODE_ENV=DEVELOPMENT& nodemon server",
+    "prod": "SET NODE_ENV=PRODUCTION& nodemon server"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/dami-laare/circul-server.git"
+  },
+  "author": "Temitayo Osunkiyesi",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/dami-laare/circul-server/issues"
+  },
+  "homepage": "https://github.com/dami-laare/circul-server#readme",
+  "dependencies": {
+    "@sentry/node": "^7.8.0",
+    "@sentry/tracing": "^7.8.0",
+    "axios": "^0.27.2",
+    "bcrypt": "^5.0.1",
+    "cookie-parser": "^1.4.6",
+    "cors": "^2.8.5",
+    "dotenv": "^16.0.1",
+    "express": "^4.18.1",
+    "jsonwebtoken": "^8.5.1",
+    "moment": "^2.29.3",
+    "moment-timezone": "^0.5.34",
+    "mongodb": "^4.7.0",
+    "mongoose": "^6.4.0",
+    "nodemailer": "^6.7.5",
+    "nodemon": "^2.0.16",
+    "referral-codes": "^2.0.3",
+    "validator": "^13.7.0"
+  }
+}
