@@ -2,7 +2,7 @@ const axios = require("axios");
 const catchAsyncErrors = require("../utils/catchAsyncErrors");
 const ErrorHandler = require("../utils/ErrorHandler");
 const capitalize = require("../utils/capitalize");
-const secret_key = "sk_test_ed91872d315a539504cafdf6c259852f679898e1";
+const secret_key = process.env.PAYSTACK_SECRET_KEY;
 
 exports.getCountries = catchAsyncErrors(async (req, res, next) => {
   await axios
