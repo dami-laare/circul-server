@@ -8,14 +8,23 @@ const sendToken = (user, statusCode, res, full) => {
     httpOnly: true,
   };
 
+  let initData;
+
+  if (!full) {
+    initData = {
+      username: user.username,
+      firstSignIn: user.firstSignUp,
+      bio: user.bio,
+    };
+  }
+
   res
     .status(statusCode)
     .cookie("token", token, options)
     .json({
       success: true,
       token,
-      username: user.username,
-      firstSignIn: user.firstSignUp,
+      ...initData,
       user: full ? user : null,
     });
 };
