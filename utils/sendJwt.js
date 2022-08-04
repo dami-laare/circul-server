@@ -12,7 +12,7 @@ const sendToken = (user, statusCode, res) => {
     success: true,
     token,
     username: user.username,
-    firstSignIn: user.firstSignIn,
+    firstSignIn: user.firstSignUp,
   });
 };
 
