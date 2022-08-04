@@ -1,4 +1,4 @@
-const sendToken = (user, statusCode, res) => {
+const sendToken = (user, statusCode, res, full) => {
   const token = user.getJwtToken();
 
   const options = {
@@ -8,12 +8,16 @@ const sendToken = (user, statusCode, res) => {
     httpOnly: true,
   };
 
-  res.status(statusCode).cookie("token", token, options).json({
-    success: true,
-    token,
-    username: user.username,
-    firstSignIn: user.firstSignUp,
-  });
+  res
+    .status(statusCode)
+    .cookie("token", token, options)
+    .json({
+      success: true,
+      token,
+      username: user.username,
+      firstSignIn: user.firstSignUp,
+      user: full ? user : null,
+    });
 };
 
 module.exports = sendToken;
