@@ -1,11 +1,13 @@
 const ErrorHandler = require("../utils/ErrorHandler");
+const Sentry = require("@sentry/node");
 
 module.exports = (err, req, res, next) => {
   err.statusCode = err.statusCode || 500;
 
   // Handles error responses in Development mode
   if (process.env.NODE_ENV === "DEVELOPMENT") {
-    console.log(err);
+    Sentry.captureException(err);
+
     res.status(err.statusCode).json({
       success: false,
       name: err.name,
@@ -17,6 +19,8 @@ module.exports = (err, req, res, next) => {
 
   // Handles error responses in Production mode
   if (process.env.NODE_ENV === "PRODUCTION") {
+    Sentry.captureException(err);
+
     let error = { ...err };
 
     error.message = err.message || "Internal server error";
@@ -35,16 +39,14 @@ module.exports = (err, req, res, next) => {
     } else if (err.name === "JsonWebTokenError") {
       const message = "JSON web token is invalid";
       error = new ErrorHandler(message, 500);
-    } else if(err.statusCode === 500) {
-      console.log(err);
-      console.log(err.statusCode);
-      error = new ErrorHandler('An error has occured', 500)
+    } else if (err.statusCode === 500) {
+      error = new ErrorHandler("An error has occured", 500);
     }
 
     res.status(error.statusCode).json({
       success: false,
       message: error.message,
-      statusCode: error.statusCode
+      statusCode: error.statusCode,
     });
   }
 };

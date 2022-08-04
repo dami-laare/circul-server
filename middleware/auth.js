@@ -26,7 +26,7 @@ exports.isAuthenticated = catchAsyncErrors(async (req, res, next) => {
       }
       // console.log((decoded.exp - decoded.iat)/(1000 * 60 * 60))
 
-      req.user = await Mentor.findById(decoded.id).populate(
+      req.user = await Creator.findById(decoded.id).populate(
         "skills withdrawals transactions"
       );
 
