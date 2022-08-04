@@ -8,5 +8,11 @@ const ErrorHandler = require("../utils/ErrorHandler");
 exports.getCreatorDashDetails = catchAsyncErrors(async (req, res, next) => {
   const creator = req.user;
 
+  if (creator.firstSignUp) {
+    creator.firstSignUp = false;
+
+    await creator.save();
+  }
+
   sendJwt(creator, 200, res, true);
 });
