@@ -40,8 +40,27 @@ exports.checkUsername = catchAsyncErrors(async (req, res, next) => {
 
   const exists = await Creator.findOne({ username });
 
-  if (exists) {
-    return next(new ErrorHandler("User already exists", 400));
+  const reserved = [
+    "dashboard",
+    "messages",
+    "profile",
+    "welcome",
+    "roles",
+    "login",
+    "sign-up",
+    "username",
+    "bio",
+    "bank",
+    "success",
+    "",
+  ];
+
+  const invalid =
+    !/^[A-Za-z0-9._~()'!*:@,;+?-]*$/g.test(username) ||
+    reserved.includes(username);
+
+  if (exists || invalid) {
+    return next(new ErrorHandler("Username not available", 400));
   }
 
   res.status(200).json({
