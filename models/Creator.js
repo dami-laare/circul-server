@@ -29,6 +29,10 @@ const creatorSchema = new mongoose.Schema({
   resetPasaswordToken: String,
   resetPasswordExpires: Date,
   token: String,
+  firstSignUp: {
+    type: Boolean,
+    default: true,
+  },
 });
 
 creatorSchema.pre("save", async function () {
