@@ -56,7 +56,7 @@ exports.checkUsername = catchAsyncErrors(async (req, res, next) => {
   ];
 
   const invalid =
-    !/^[A-Za-z0-9._~()'!*:@,;+?-]*$/g.test(username) ||
+    !/^[A-Za-z0-9._~()'!*:@,;+-]*$/g.test(username) ||
     reserved.includes(username);
 
   if (exists || invalid) {
