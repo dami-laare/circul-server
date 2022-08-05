@@ -15,7 +15,6 @@ const creatorSchema = new mongoose.Schema({
   },
   username: {
     type: String,
-    unique: true,
   },
   imageUrl: {
     type: String,
