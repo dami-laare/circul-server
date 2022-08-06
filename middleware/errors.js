@@ -6,7 +6,9 @@ module.exports = (err, req, res, next) => {
 
   // Handles error responses in Development mode
   if (process.env.NODE_ENV === "DEVELOPMENT") {
-    Sentry.captureException(err);
+    if (err.statusCode === 500) {
+      Sentry.captureException(err);
+    }
 
     res.status(err.statusCode).json({
       success: false,
@@ -19,8 +21,6 @@ module.exports = (err, req, res, next) => {
 
   // Handles error responses in Production mode
   if (process.env.NODE_ENV === "PRODUCTION") {
-    Sentry.captureException(err);
-
     let error = { ...err };
 
     error.message = err.message || "Internal server error";
@@ -40,6 +40,8 @@ module.exports = (err, req, res, next) => {
       const message = "JSON web token is invalid";
       error = new ErrorHandler(message, 500);
     } else if (err.statusCode === 500) {
+      Sentry.captureException(err);
+
       error = new ErrorHandler("An error has occured", 500);
     }
 

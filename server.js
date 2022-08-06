@@ -1,33 +1,24 @@
 const app = require("./app");
 const connectDatabase = require("./connectDatabase");
 const Sentry = require("@sentry/node");
-const Tracing = require("@sentry/tracing");
 
 require("dotenv").config();
 
 connectDatabase();
 
-
-
 Sentry.init({
   dsn: "https://6b195895235b45fa84556bd1e42c698a@o1340885.ingest.sentry.io/6613817",
   tracesSampleRate: 1.0,
+  environment: process.env.NODE_ENV,
+  integrations: [
+    new Sentry.Integrations.Http({ tracing: true }),
+  ],
 });
 
-// const transaction = Sentry.startTransaction({
-//   op: "test",
-//   name: "My First Test Transaction",
-// });
-
-// setTimeout(() => {
-//   try {
-//     foo();
-//   } catch (e) {
-//     Sentry.captureException(e);
-//   } finally {
-//     transaction.finish();
-//   }
-// }, 99);
+// Handling uncaught exceptions
+process.on("uncaughtException", (err) => {
+  Sentry.captureException(err);
+});
 
 app.listen(process.env.PORT, () => {
   console.log(
@@ -37,4 +28,9 @@ app.listen(process.env.PORT, () => {
 
 app.get("/", async (req, res, next) => {
   res.send("Online");
+});
+
+// Handling unhandled promise rejections
+process.on("unhandledRejection", (err) => {
+  Sentry.captureException(err);
 });

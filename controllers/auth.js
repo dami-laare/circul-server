@@ -1,9 +1,28 @@
 const axios = require("axios");
-const catchAsyncErrors = require("../utils/catchAsyncErrors");
 const crypto = require("crypto");
+const OAuth = require("oauth");
+const { OAuth2Client } = require("google-auth-library");
+const catchAsyncErrors = require("../utils/catchAsyncErrors");
 const sendJwt = require("../utils/sendJwt");
 const Creator = require("../models/Creator");
 const ErrorHandler = require("../utils/ErrorHandler");
+require("dotenv").config();
+
+const oauth = new OAuth.OAuth(
+  "https://api.twitter.com/oauth/request_token",
+  "https://api.twitter.com/oauth/access_token",
+  process.env.TWITTER_ACCESS_KEY,
+  process.env.TWITTER_ACCESS_TOKEN_SECRET,
+  "1.0A",
+  process.env.TWITTER_CALLBACK_URL,
+  "HMAC-SHA1"
+);
+
+const googleClient = new OAuth2Client(
+  process.env.GOOGLE_CLIENT_ID,
+  process.env.GOOGLE_CLIENT_SECRET,
+  process.env.GOOGLE_DEV_REDIRECT_URI
+);
 
 exports.createCreator = catchAsyncErrors(async (req, res, next) => {
   const { email, password } = req.body;
@@ -96,6 +115,10 @@ exports.creatorLogin = catchAsyncErrors(async (req, res, next) => {
 
   const creator = await Creator.findOne({ email }).select("+password");
 
+  if (!creator) {
+    return next(new ErrorHandler("User does not exist", 400));
+  }
+
   const isPasswordMatched = creator.comparePassword(password);
 
   if (!isPasswordMatched) {
@@ -103,4 +126,110 @@ exports.creatorLogin = catchAsyncErrors(async (req, res, next) => {
   }
 
   sendJwt(creator, 200, res);
+});
+
+exports.getTwitterReqToken = catchAsyncErrors(async (req, res, next) => {
+  await oauth.getOAuthRequestToken(async (err, oauth_token, oauth_secret) => {
+    if (err) {
+      return next(
+        new ErrorHandler(JSON.parse(err.data).errors[0].message),
+        err.statusCode
+      );
+    }
+    await Creator.create({
+      twitterData: {
+        oauth_token,
+        oauth_secret,
+      },
+    });
+
+    res.status(200).json({
+      success: true,
+      data: {
+        oauth_token,
+        oauth_secret,
+      },
+    });
+  });
+});
+
+exports.getTwitterAccessToken = catchAsyncErrors(async (req, res, next) => {
+  const { oauth_token, oauth_secret, oauth_verifier } = req.body;
+
+  const creator = await Creator.findOne({
+    "twitterData.oauth_token": oauth_token,
+  });
+
+  if (!creator) {
+    return next(new ErrorHandler("Login failed: Invalid oauth token", 400));
+  }
+
+  if (creator.twitterData.oauth_secret !== oauth_secret) {
+    return next(new ErrorHandler("Login failed: oauth_secret mismatch", 400));
+  }
+
+  oauth.getOAuthAccessToken(
+    oauth_token,
+    oauth_secret,
+    oauth_verifier,
+    async (err, access_token, access_token_secret) => {
+      if (err) {
+        return next(
+          new ErrorHandler(JSON.parse(err.data).errors[0].message),
+          err.statusCode
+        );
+      }
+
+      creator.twitterData.access_token = access_token;
+      creator.twitterData.access_token_secret = access_token_secret;
+
+      await oauth.getProtectedResource(
+        "https://api.twitter.com/1.1/account/verify_credentials.json",
+        "GET",
+        access_token,
+        access_token_secret,
+        async (err, data, response) => {
+          if (err) {
+            return next(
+              new ErrorHandler(JSON.parse(err.data).errors[0].message),
+              err.statusCode
+            );
+          }
+          console.log("data", data);
+          console.log("response", response);
+          res.status(200).json({
+            success: true,
+            data,
+            response,
+          });
+        }
+      );
+    }
+  );
+});
+
+exports.verifyGoogle = catchAsyncErrors(async (req, res, next) => {
+  const { idToken } = req.body;
+  const ticket = await googleClient.verifyIdToken({
+    idToken,
+    audience: process.env.GOOGLE_CLIENT_ID,
+  });
+
+  const data = ticket.getPayload();
+
+  const { name, profile, picture, sub } = ticket.getPayload();
+
+  const userData = {
+    name,
+    profile,
+    picture,
+    sub,
+  };
+
+  console.log(userData);
+
+  res.status(200).json({
+    success: true,
+    data,
+  });
 });

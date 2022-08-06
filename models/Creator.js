@@ -5,12 +5,12 @@ const mongoose = require("mongoose");
 const creatorSchema = new mongoose.Schema({
   email: {
     type: String,
-    required: true,
-    unique: true,
+    // required: true,
+    // unique: true,
   },
   password: {
     type: String,
-    required: true,
+    // required: true,
     select: false,
   },
   username: {
@@ -32,6 +32,7 @@ const creatorSchema = new mongoose.Schema({
     type: Boolean,
     default: true,
   },
+  twitterData: {},
 });
 
 creatorSchema.pre("save", async function () {
