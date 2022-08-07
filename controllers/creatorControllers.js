@@ -68,3 +68,13 @@ exports.updateBankDetails = catchAsyncErrors(async (req, res, next) => {
 
   sendJwt(creator, 200, res);
 });
+
+exports.updateProfileImg = catchAsyncErrors(async (req, res, next) => {
+  const creator = req.user;
+
+  creator.imageUrl = req.body.imageUrl;
+
+  await creator.save();
+  
+  sendJwt(creator, 200, res);
+});
