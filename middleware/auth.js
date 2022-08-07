@@ -24,9 +24,13 @@ exports.isAuthenticated = catchAsyncErrors(async (req, res, next) => {
         console.log(err);
         return next(new ErrorHandler(err.message, 400));
       }
-      // console.log((decoded.exp - decoded.iat)/(1000 * 60 * 60))
+      const user = await Creator.findById(decoded.id)
+      // .populate(
+      //   "messages.transaction"
+      // );
 
-      req.user = await Creator.findById(decoded.id);
+      req.user = user;
+      // req.new_token = user.getJwtToken();
 
       next();
     }

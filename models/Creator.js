@@ -33,6 +33,43 @@ const creatorSchema = new mongoose.Schema({
     default: true,
   },
   twitterData: {},
+  messages: [
+    {
+      text: String,
+      dateCreated: {
+        type: Date,
+        default: new Date(Date.now()),
+      },
+      read: {
+        type: Boolean,
+        default: false,
+      },
+      transaction: {
+        type: mongoose.Schema.ObjectId,
+        ref: "transaction",
+      },
+    },
+  ],
+  transactions: [
+    {
+      type: mongoose.Schema.ObjectId,
+      ref: "transaction",
+    },
+  ],
+  analytics: {
+    page_views: {
+      type: Number,
+      default: 0,
+    },
+    shares: {
+      type: Number,
+      default: 0,
+    },
+  },
+  total_earnings: {
+    type: Number,
+    default: 0,
+  },
 });
 
 creatorSchema.pre("save", async function () {
