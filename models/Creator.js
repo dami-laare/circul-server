@@ -20,6 +20,14 @@ const creatorSchema = new mongoose.Schema({
     type: String,
   },
   bio: String,
+  location: {
+    type: String,
+    default: "",
+  },
+  website: {
+    type: String,
+    default: "",
+  },
   bank_details: {},
   profileComplete: {
     type: Boolean,

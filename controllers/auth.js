@@ -1,6 +1,7 @@
 const axios = require("axios");
 const crypto = require("crypto");
 const OAuth = require("oauth");
+const validator = require("validator");
 const { OAuth2Client } = require("google-auth-library");
 const catchAsyncErrors = require("../utils/catchAsyncErrors");
 const sendJwt = require("../utils/sendJwt");
@@ -35,6 +36,15 @@ exports.createCreator = catchAsyncErrors(async (req, res, next) => {
 
   if (existingCreator) {
     return next(new ErrorHandler("User already exists", 400));
+  }
+
+  if (
+    !validator.isStrongPassword(password, {
+      pointsPerUnique: 0,
+      pointsPerRepeat: 0,
+    })
+  ) {
+    return next(new ErrorHandler("Password is not valid", 400));
   }
 
   const creator = await Creator.create({
@@ -101,7 +111,7 @@ exports.completeCreatorAccount = catchAsyncErrors(async (req, res, next) => {
   creator.username = username;
   creator.imageUrl = imageUrl;
   creator.bio = bio;
-  creator.bankDetails = bankDetails;
+  creator.bank_details = bankDetails;
 
   creator.token = null;
 
