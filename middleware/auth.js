@@ -24,7 +24,12 @@ exports.isAuthenticated = catchAsyncErrors(async (req, res, next) => {
         console.log(err);
         return next(new ErrorHandler(err.message, 400));
       }
-      const user = await Creator.findById(decoded.id)
+      let user;
+      if (req.query.password) {
+        user = await Creator.findById(decoded.id).select("+password");
+      } else {
+        user = await Creator.findById(decoded.id);
+      }
       // .populate(
       //   "messages.transaction"
       // );

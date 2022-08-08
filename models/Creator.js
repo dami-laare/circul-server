@@ -8,6 +8,10 @@ const creatorSchema = new mongoose.Schema({
     // required: true,
     // unique: true,
   },
+  email_verified: {
+    type: Boolean,
+    default: false,
+  },
   password: {
     type: String,
     // required: true,
