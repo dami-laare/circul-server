@@ -12,6 +12,10 @@ const creatorSchema = new mongoose.Schema({
     type: Boolean,
     default: false,
   },
+  profile_complete: {
+    type: Boolean,
+    default: false,
+  },
   password: {
     type: String,
     // required: true,

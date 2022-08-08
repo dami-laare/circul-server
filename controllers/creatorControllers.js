@@ -1,9 +1,10 @@
-// const axios = require("axios");
+const axios = require("axios");
 const catchAsyncErrors = require("../utils/catchAsyncErrors");
 // const crypto = require("crypto");
 const validator = require("validator");
 const sendJwt = require("../utils/sendJwt");
 const Creator = require("../models/Creator");
+const Transaction = require("../models/Transaction");
 const ErrorHandler = require("../utils/ErrorHandler");
 
 exports.getCreatorDashDetails = catchAsyncErrors(async (req, res, next) => {
@@ -16,6 +17,44 @@ exports.getCreatorDashDetails = catchAsyncErrors(async (req, res, next) => {
   }
 
   sendJwt(creator, 200, res, true);
+});
+
+exports.getFanPageDetails = catchAsyncErrors(async (req, res, next) => {
+  const creator = await Creator.findOne({
+    username: req.params.username,
+  }).select("username email_verified profile_complete bio imageUrl");
+
+  if (!creator) {
+    return next(new ErrorHandler("USer does not exist", 400));
+  }
+
+  let transactionSuccess;
+
+  if (req.query.ref) {
+    await axios
+      .get(`https://api.paystack.co/transaction/verify/${req.query.ref}`, {
+        headers: {
+          Authorization: `Bearer ${process.env.PAYSTACK_SECRET_KEY}`,
+        },
+      })
+      .then(async (res) => {
+        if (res.data.data.status === "success") {
+          const transaction = await Transaction.findOne({ ref: req.query.ref });
+
+          transaction.status = "success";
+
+          await transaction.save();
+
+          transactionSuccess = true;
+        }
+      });
+  }
+
+  res.status(200).json({
+    success: true,
+    creator,
+    transactionSuccess,
+  });
 });
 
 exports.updateProfile = catchAsyncErrors(async (req, res, next) => {
@@ -104,4 +143,58 @@ exports.updateProfileImg = catchAsyncErrors(async (req, res, next) => {
   await creator.save();
 
   sendJwt(creator, 200, res);
+});
+
+exports.sendTip = catchAsyncErrors(async (req, res, next) => {
+  const creator = await Creator.findOne({ username: req.body.username });
+
+  if (!creator) {
+    return next(new ErrorHandler("User does not exist", 400));
+  }
+
+  const response = await axios.post(
+    "https://api.paystack.co/transaction/initialize",
+    {
+      email: req.body.email,
+      amount: Number(req.body.amount) * 100,
+      subaccount: creator.bank_details.subaccount_code,
+      channels: ["card", "bank_transfer"],
+      bearer: "subaccount",
+      callback_url: `${process.env.FRONTEND_BASE_URL}/${creator.username}`,
+    },
+    {
+      headers: {
+        Authorization: `Bearer ${process.env.PAYSTACK_SECRET_KEY}`,
+      },
+    }
+  );
+
+  const transaction = await Transaction.create({
+    amount: req.body.amount,
+    fan: {
+      nickname: req.body.name ? req.body.name : "anonymous",
+    },
+    creator: creator._id,
+  });
+
+  if (req.body.message) {
+    creator.messages.push({
+      text: req.body.message,
+      transaction: transaction._id,
+    });
+  }
+
+  creator.transactions.push(transaction._id);
+
+  await creator.save();
+
+  const data = {
+    url: response.data.data.authorization_url,
+    ref: response.data.data.reference,
+  };
+
+  res.status(200).json({
+    success: true,
+    data,
+  });
 });

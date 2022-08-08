@@ -34,7 +34,7 @@ exports.createCreator = catchAsyncErrors(async (req, res, next) => {
 
   const existingCreator = await Creator.findOne({ email });
 
-  if (existingCreator) {
+  if (existingCreator && existingCreator.profile_complete) {
     return next(new ErrorHandler("User already exists", 400));
   }
 
@@ -46,22 +46,38 @@ exports.createCreator = catchAsyncErrors(async (req, res, next) => {
   ) {
     return next(new ErrorHandler("Password is not valid", 400));
   }
-
-  const creator = await Creator.create({
-    email,
-    password,
-  });
-
   const token = await crypto.randomBytes(20).toString("hex");
 
-  creator.token = await crypto.createHash("sha256").update(token).digest("hex");
+  if (existingCreator) {
+    existingCreator.token = await crypto
+      .createHash("sha256")
+      .update(token)
+      .digest("hex");
 
-  await creator.save();
+    await existingCreator.save();
 
-  res.status(200).json({
-    success: true,
-    token,
-  });
+    res.status(200).json({
+      success: true,
+      token,
+      profileComplete: false,
+    });
+  } else {
+    const creator = await Creator.create({
+      email,
+      password,
+    });
+    creator.token = await crypto
+      .createHash("sha256")
+      .update(token)
+      .digest("hex");
+
+    await creator.save();
+
+    res.status(200).json({
+      success: true,
+      token,
+    });
+  }
 });
 
 exports.checkUsername = catchAsyncErrors(async (req, res, next) => {
@@ -98,7 +114,7 @@ exports.checkUsername = catchAsyncErrors(async (req, res, next) => {
 });
 
 exports.completeCreatorAccount = catchAsyncErrors(async (req, res, next) => {
-  let { token, imageUrl, bio, username, bankDetails } = req.body;
+  let { token, imageUrl, bio, username, bank_details } = req.body;
 
   token = await crypto.createHash("sha256").update(token).digest("hex");
 
@@ -111,12 +127,29 @@ exports.completeCreatorAccount = catchAsyncErrors(async (req, res, next) => {
   creator.username = username;
   creator.imageUrl = imageUrl;
   creator.bio = bio;
-  creator.bank_details = bankDetails;
-
+  creator.bank_details = bank_details;
+  creator.profile_complete = true;
   creator.token = null;
 
-  await creator.save();
+  const response = await axios.post(
+    "https://api.paystack.co/subaccount",
+    {
+      business_name: username,
+      settlement_bank: bank_details.code,
+      account_number: bank_details.account_number,
+      percentage_charge: 0.1,
+      description: `Circul subaccount for ${username}`,
+    },
+    {
+      headers: {
+        Authorization: `Bearer ${process.env.PAYSTACK_SECRET_KEY}`,
+      },
+    }
+  );
 
+  creator.bank_details.subaccount_code = response.data.data.subaccount_code;
+
+  await creator.save();
   sendJwt(creator, 200, res);
 });
 
@@ -135,7 +168,24 @@ exports.creatorLogin = catchAsyncErrors(async (req, res, next) => {
     return next(new ErrorHandler("Invalid password", 400));
   }
 
-  sendJwt(creator, 200, res);
+  if (!creator.profile_complete) {
+    const token = await crypto.randomBytes(20).toString("hex");
+
+    creator.token = await crypto
+      .createHash("sha256")
+      .update(token)
+      .digest("hex");
+
+    await creator.save();
+
+    res.status(200).json({
+      success: true,
+      token,
+      profileComplete: false,
+    });
+  } else {
+    sendJwt(creator, 200, res);
+  }
 });
 
 exports.getTwitterReqToken = catchAsyncErrors(async (req, res, next) => {

@@ -14,6 +14,7 @@ const transactionSchema = new mongoose.Schema({
     default: "processing",
     enum: ["processing", "success", "failed"],
   },
+  ref: String,
   fan: {
     nickname: {
       type: String,
