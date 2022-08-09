@@ -43,9 +43,10 @@ exports.getFanPageDetails = catchAsyncErrors(async (req, res, next) => {
     if (response.data.data.status === "success") {
       const transaction = await Transaction.findOne({ ref: req.query.ref });
 
-      if (!transaction.status) {
+      if (transaction.status !== "sucess") {
         transaction.status = "success";
-
+        creator.total_earnings += transaction.earnings;
+        await creator.save();
         await transaction.save();
       }
 
