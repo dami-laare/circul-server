@@ -20,6 +20,9 @@ const transactionSchema = new mongoose.Schema({
       type: String,
       default: "anonymous",
     },
+    email: {
+      type: String,
+    },
   },
   creator: {
     type: mongoose.Schema.ObjectId,

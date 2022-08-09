@@ -31,25 +31,33 @@ exports.getFanPageDetails = catchAsyncErrors(async (req, res, next) => {
   let transactionSuccess;
 
   if (req.query.ref) {
-    await axios
-      .get(`https://api.paystack.co/transaction/verify/${req.query.ref}`, {
+    const response = await axios.get(
+      `https://api.paystack.co/transaction/verify/${req.query.ref}`,
+      {
         headers: {
           Authorization: `Bearer ${process.env.PAYSTACK_SECRET_KEY}`,
         },
-      })
-      .then(async (res) => {
-        if (res.data.data.status === "success") {
-          const transaction = await Transaction.findOne({ ref: req.query.ref });
+      }
+    );
 
-          transaction.status = "success";
+    if (response.data.data.status === "success") {
+      const transaction = await Transaction.findOne({ ref: req.query.ref });
 
-          await transaction.save();
+      if (!transaction.status) {
+        transaction.status = "success";
 
-          transactionSuccess = true;
-        }
-      });
+        await transaction.save();
+      }
+
+      transactionSuccess = true;
+    }
+
+    return res.status(200).json({
+      success: true,
+      creator,
+      transactionSuccess,
+    });
   }
-
   res.status(200).json({
     success: true,
     creator,
@@ -173,6 +181,7 @@ exports.sendTip = catchAsyncErrors(async (req, res, next) => {
     amount: req.body.amount,
     fan: {
       nickname: req.body.name ? req.body.name : "anonymous",
+      email: req.body.email,
     },
     creator: creator._id,
   });
