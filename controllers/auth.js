@@ -34,7 +34,7 @@ exports.createCreator = catchAsyncErrors(async (req, res, next) => {
 
   const existingCreator = await Creator.findOne({ email });
 
-  if (existingCreator && existingCreator.profile_complete) {
+  if (existingCreator && existingCreator.profileComplete) {
     return next(new ErrorHandler("User already exists", 400));
   }
 
@@ -128,7 +128,7 @@ exports.completeCreatorAccount = catchAsyncErrors(async (req, res, next) => {
   creator.imageUrl = imageUrl;
   creator.bio = bio;
   creator.bank_details = bank_details;
-  creator.profile_complete = true;
+  creator.profileComplete = true;
   creator.token = null;
 
   const response = await axios.post(
@@ -162,13 +162,13 @@ exports.creatorLogin = catchAsyncErrors(async (req, res, next) => {
     return next(new ErrorHandler("User does not exist", 400));
   }
 
-  const isPasswordMatched = creator.comparePassword(password);
+  const isPasswordMatched = await creator.comparePassword(password);
 
   if (!isPasswordMatched) {
     return next(new ErrorHandler("Invalid password", 400));
   }
 
-  if (!creator.profile_complete) {
+  if (!creator.profileComplete) {
     const token = await crypto.randomBytes(20).toString("hex");
 
     creator.token = await crypto

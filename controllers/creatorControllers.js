@@ -22,7 +22,7 @@ exports.getCreatorDashDetails = catchAsyncErrors(async (req, res, next) => {
 exports.getFanPageDetails = catchAsyncErrors(async (req, res, next) => {
   const creator = await Creator.findOne({
     username: req.params.username,
-  }).select("username email_verified profile_complete bio imageUrl");
+  }).select("username email_verified profileComplete bio imageUrl");
 
   if (!creator) {
     return next(new ErrorHandler("USer does not exist", 400));

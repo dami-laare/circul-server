@@ -34,6 +34,10 @@ exports.isAuthenticated = catchAsyncErrors(async (req, res, next) => {
       //   "messages.transaction"
       // );
 
+      if (!user) {
+        return next(new ErrorHandler("User does not exist", 400));
+      }
+
       req.user = user;
       // req.new_token = user.getJwtToken();
 
