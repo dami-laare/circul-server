@@ -7,6 +7,7 @@ const {
   updateProfileImg,
   getFanPageDetails,
   sendTip,
+  readMessage,
 } = require("../controllers/creatorControllers");
 const { isAuthenticated } = require("../middleware/auth");
 
@@ -19,5 +20,6 @@ router.route("/creator/profile").put(isAuthenticated, updateProfile);
 router.route("/creator/password").put(isAuthenticated, changePassword);
 router.route("/creator/bank").put(isAuthenticated, updateBankDetails);
 router.route("/creator/image").put(isAuthenticated, updateProfileImg);
+router.route("/creator/message/read").put(isAuthenticated, readMessage);
 
 module.exports = router;

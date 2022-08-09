@@ -28,7 +28,9 @@ exports.isAuthenticated = catchAsyncErrors(async (req, res, next) => {
       if (req.query.password) {
         user = await Creator.findById(decoded.id).select("+password");
       } else {
-        user = await Creator.findById(decoded.id);
+        user = await Creator.findById(decoded.id).populate(
+          "messages.transaction"
+        );
       }
       // .populate(
       //   "messages.transaction"

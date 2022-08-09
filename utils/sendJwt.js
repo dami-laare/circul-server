@@ -26,6 +26,7 @@ const sendToken = (user, statusCode, res, full) => {
       token,
       ...initData,
       user: full ? user : null,
+      profileComplete: true,
     });
 };
 

@@ -25,7 +25,7 @@ exports.getFanPageDetails = catchAsyncErrors(async (req, res, next) => {
   }).select("username email_verified profileComplete bio imageUrl");
 
   if (!creator) {
-    return next(new ErrorHandler("USer does not exist", 400));
+    return next(new ErrorHandler("User does not exist", 400));
   }
 
   let transactionSuccess;
@@ -196,5 +196,23 @@ exports.sendTip = catchAsyncErrors(async (req, res, next) => {
   res.status(200).json({
     success: true,
     data,
+  });
+});
+
+exports.readMessage = catchAsyncErrors(async (req, res, next) => {
+  const creator = req.user;
+
+  let messageIndex = creator.messages.map((m, i) => {
+    if (m._id.toString() === req.body.message) {
+      return i;
+    }
+  });
+
+  creator.messages[messageIndex[0]].read = true;
+
+  await creator.save();
+
+  res.status(200).json({
+    success: true,
   });
 });
