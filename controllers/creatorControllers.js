@@ -43,7 +43,7 @@ exports.getFanPageDetails = catchAsyncErrors(async (req, res, next) => {
     if (response.data.data.status === "success") {
       const transaction = await Transaction.findOne({ ref: req.query.ref });
 
-      if (transaction.status !== "sucess") {
+      if (transaction.status !== "success") {
         transaction.status = "success";
         creator.total_earnings += transaction.earnings;
         await creator.save();
@@ -51,6 +51,12 @@ exports.getFanPageDetails = catchAsyncErrors(async (req, res, next) => {
       }
 
       transactionSuccess = true;
+    } else {
+      const transaction = await Transaction.findOne({ ref: req.query.ref });
+
+      if (transaction.status === "success") {
+        transactionSuccess = true;
+      }
     }
 
     return res.status(200).json({
