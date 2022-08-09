@@ -56,7 +56,7 @@ exports.webhook = catchAsyncErrors(async (req, res, next) => {
     if (transaction.status !== "success") {
       transaction.status = "success";
       const creator = await Creator.findById(transaction.creator.toString());
-      creator.total_earnings += transaction.amount;
+      creator.total_earnings += Number(transaction.amount) * 0.9;
 
       await creator.save();
       await transaction.save();
