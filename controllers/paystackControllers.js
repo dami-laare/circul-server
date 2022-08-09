@@ -4,6 +4,7 @@ const catchAsyncErrors = require("../utils/catchAsyncErrors");
 const ErrorHandler = require("../utils/ErrorHandler");
 const capitalize = require("../utils/capitalize");
 const Transaction = require("../models/Transaction");
+const Creator = require("../models/Creator");
 const secret_key = process.env.PAYSTACK_SECRET_KEY;
 
 exports.getCountries = catchAsyncErrors(async (req, res, next) => {
@@ -54,7 +55,10 @@ exports.webhook = catchAsyncErrors(async (req, res, next) => {
 
     if (transaction.status !== "success") {
       transaction.status === "success";
+      const creator = await Creator.findById(transaction.creator.toString());
+      creator.total_earnings += transaction.amount;
 
+      await creator.save();
       await transaction.save();
     }
 
