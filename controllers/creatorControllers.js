@@ -191,6 +191,7 @@ exports.sendTip = catchAsyncErrors(async (req, res, next) => {
       email: req.body.email,
     },
     creator: creator._id,
+    ref: response.data.data.reference,
   });
 
   if (req.body.message) {
