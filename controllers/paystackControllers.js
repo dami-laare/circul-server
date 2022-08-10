@@ -2,7 +2,6 @@ const axios = require("axios");
 const Sentry = require("@sentry/node");
 const catchAsyncErrors = require("../utils/catchAsyncErrors");
 const ErrorHandler = require("../utils/ErrorHandler");
-const capitalize = require("../utils/capitalize");
 const Transaction = require("../models/Transaction");
 const Creator = require("../models/Creator");
 const secret_key = process.env.PAYSTACK_SECRET_KEY;
