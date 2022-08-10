@@ -141,9 +141,22 @@ exports.changePassword = catchAsyncErrors(async (req, res, next) => {
 exports.updateBankDetails = catchAsyncErrors(async (req, res, next) => {
   const creator = req.user;
 
-  const { bankDetails } = req.body;
+  const { bank_details } = req.body;
 
-  creator.bank_details = bankDetails;
+  await axios.put(
+    `https://api.paystack.co/subaccount/${creator.bank_details.subaccount_code}`,
+    {
+      settlement_bank: bank_details.code,
+      account_number: bank_details.account_number,
+    },
+    {
+      headers: {
+        Authorization: `Bearer ${process.env.PAYSTACK_SECRET_KEY}`,
+      },
+    }
+  );
+
+  creator.bank_details = bank_details;
 
   await creator.save();
 
