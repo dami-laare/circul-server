@@ -69,14 +69,24 @@ const creatorSchema = new mongoose.Schema({
     },
   ],
   analytics: {
-    page_views: {
-      type: Number,
-      default: 0,
-    },
-    shares: {
-      type: Number,
-      default: 0,
-    },
+    page_views: [
+      {
+        user_agent: String,
+        date: {
+          type: Date,
+          default: new Date(Date.now()),
+        },
+      },
+    ],
+    shares: [
+      {
+        user_agent: String,
+        date: {
+          type: Date,
+          default: new Date(Date.now()),
+        },
+      },
+    ],
   },
   total_earnings: {
     type: Number,

@@ -233,3 +233,85 @@ exports.readMessage = catchAsyncErrors(async (req, res, next) => {
     success: true,
   });
 });
+
+exports.analytics = catchAsyncErrors(async (req, res, next) => {
+  const user_agent = req.headers["user-agent"];
+
+  const creator = await Creator.findOne({ username: req.body.username });
+
+  if (!creator) {
+    return next(new ErrorHandler("User does not exist", 400));
+  }
+
+  if (req.query.method === "view") {
+    if (
+      creator.analytics.page_views.length === 0 ||
+      creator.analytics.page_views[0] === 0
+    ) {
+      if (!creator.analytics.page_views) {
+        creator.analytics.page_views = [];
+      }
+      creator.analytics.page_views.pop();
+      creator.analytics.page_views.push({
+        user_agent,
+      });
+    } else {
+      const filteredViews = creator.analytics.page_views.filter((v) => {
+        v.user_agent === user_agent;
+      });
+
+      const mostRecentView = filteredViews[filteredViews.length - 1];
+
+      const mostRecentViewTime = new Date(mostRecentView.date).getTime();
+
+      if (filteredViews.length === 0) {
+        creator.analytics.page_views.push({
+          user_agent,
+        });
+      } else if (mostRecentViewTime - Date.now() > 3600000) {
+        creator.analytics.page_views.push({
+          user_agent,
+        });
+      }
+    }
+  }
+
+  if (req.query.method === "share") {
+    if (
+      creator.analytics.shares.length === 0 ||
+      creator.analytics.shares[0] === 0
+    ) {
+      if (!creator.analytics.shares) {
+        creator.analytics.shares = [];
+      }
+      creator.analytics.shares.pop();
+      creator.analytics.shares.push({
+        user_agent,
+      });
+    } else {
+      const filteredShares = creator.analytics.shares.filter((v) => {
+        v.user_agent === user_agent;
+      });
+
+      const mostRecentShare = filteredShares[filteredShares.length - 1];
+
+      const mostRecentShareTime = new Date(mostRecentShare.date).getTime();
+
+      if (filteredShares.length === 0) {
+        creator.analytics.shares.push({
+          user_agent,
+        });
+      } else if (mostRecentShareTime - Date.now() > 3600000) {
+        creator.analytics.shares.push({
+          user_agent,
+        });
+      }
+    }
+  }
+
+  await creator.save();
+
+  res.status(200).json({
+    success: true,
+  });
+});
