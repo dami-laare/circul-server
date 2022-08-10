@@ -237,7 +237,7 @@ exports.readMessage = catchAsyncErrors(async (req, res, next) => {
 exports.analytics = catchAsyncErrors(async (req, res, next) => {
   const user_agent = req.headers["user-agent"];
 
-  const creator = await Creator.findOne({ username: req.body.username });
+  const creator = await Creator.findOne({ username: req.params.username });
 
   if (!creator) {
     return next(new ErrorHandler("User does not exist", 400));
@@ -268,7 +268,7 @@ exports.analytics = catchAsyncErrors(async (req, res, next) => {
         creator.analytics.page_views.push({
           user_agent,
         });
-      } else if (mostRecentViewTime - Date.now() > 3600000) {
+      } else if (mostRecentViewTime - Date.now() > 900000) {
         creator.analytics.page_views.push({
           user_agent,
         });
@@ -301,7 +301,7 @@ exports.analytics = catchAsyncErrors(async (req, res, next) => {
         creator.analytics.shares.push({
           user_agent,
         });
-      } else if (mostRecentShareTime - Date.now() > 3600000) {
+      } else if (mostRecentShareTime - Date.now() > 900000) {
         creator.analytics.shares.push({
           user_agent,
         });
