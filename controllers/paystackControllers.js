@@ -21,6 +21,7 @@ exports.getCountries = catchAsyncErrors(async (req, res, next) => {
       });
     })
     .catch((err) => {
+      console.log(err)
       Sentry.captureException(err);
       return next(new ErrorHandler("An error occurred", 500));
     });

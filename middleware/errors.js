@@ -9,7 +9,7 @@ module.exports = (err, req, res, next) => {
     if (err.statusCode === 500) {
       Sentry.captureException(err);
     }
-
+    console.log(err);
     res.status(err.statusCode).json({
       success: false,
       name: err.name,
