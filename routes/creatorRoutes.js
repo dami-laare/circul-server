@@ -9,12 +9,14 @@ const {
   sendTip,
   readMessage,
   analytics,
+  getCreators,
 } = require("../controllers/creatorControllers");
 const { isAuthenticated } = require("../middleware/auth");
 
 const router = express.Router();
 
 router.route("/creator").get(isAuthenticated, getCreatorDashDetails);
+router.route("/creators").get(getCreators);
 router.route("/creator/fan_page/:username").get(getFanPageDetails);
 router.route("/creator/fan_page/tip").post(sendTip);
 router.route("/creator/profile").put(isAuthenticated, updateProfile);

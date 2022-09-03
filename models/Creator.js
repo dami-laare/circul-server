@@ -8,6 +8,9 @@ const creatorSchema = new mongoose.Schema({
     // required: true,
     // unique: true,
   },
+  name: {
+    type: String,
+  },
   email_verified: {
     type: Boolean,
     default: false,

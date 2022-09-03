@@ -110,20 +110,20 @@ exports.updateProfile = catchAsyncErrors(async (req, res, next) => {
 exports.changePassword = catchAsyncErrors(async (req, res, next) => {
   const creator = req.user;
 
-  const { new_password, confirm_password, old_password } = req.body;
+  const { password, confirmPassword } = req.body;
 
-  const isPasswordMatched = await creator.comparePassword(old_password);
+  // const isPasswordMatched = await creator.comparePassword(old_password);
 
-  if (!isPasswordMatched) {
-    return next(new ErrorHandler("Incorrect old password", 400));
-  }
+  // if (!isPasswordMatched) {
+  //   return next(new ErrorHandler("Incorrect old password", 400));
+  // }
 
-  if (new_password !== confirm_password) {
+  if (password !== confirmPassword) {
     return next(new ErrorHandler("Passwords do not match", 400));
   }
 
   if (
-    !validator.isStrongPassword(new_password, {
+    !validator.isStrongPassword(password, {
       pointsPerUnique: 0,
       pointsPerRepeat: 0,
     })
@@ -131,7 +131,7 @@ exports.changePassword = catchAsyncErrors(async (req, res, next) => {
     return next(new ErrorHandler("Password is not valid", 400));
   }
 
-  creator.password = new_password;
+  creator.password = password;
 
   await creator.save();
 
@@ -207,12 +207,10 @@ exports.sendTip = catchAsyncErrors(async (req, res, next) => {
     ref: response.data.data.reference,
   });
 
-  if (req.body.message) {
-    creator.messages.push({
-      text: req.body.message,
-      transaction: transaction._id,
-    });
-  }
+  creator.messages.push({
+    text: req.body.message,
+    transaction: transaction._id,
+  });
 
   creator.transactions.push(transaction._id);
 
@@ -232,13 +230,15 @@ exports.sendTip = catchAsyncErrors(async (req, res, next) => {
 exports.readMessage = catchAsyncErrors(async (req, res, next) => {
   const creator = req.user;
 
-  let messageIndex = creator.messages.map((m, i) => {
+  let messageIndex;
+
+  creator.messages.forEach((m, i) => {
     if (m._id.toString() === req.body.message) {
-      return i;
+      messageIndex = i;
     }
   });
 
-  creator.messages[messageIndex[0]].read = true;
+  creator.messages[messageIndex].read = true;
 
   await creator.save();
 
@@ -326,5 +326,37 @@ exports.analytics = catchAsyncErrors(async (req, res, next) => {
 
   res.status(200).json({
     success: true,
+  });
+});
+
+// GET: /api/v1/creators
+exports.getCreators = catchAsyncErrors(async (req, res, next) => {
+  let creators;
+  const limit = req.query.limit ? req.query.limit : 15;
+  const page = req.query.page ? req.query.page : 15;
+
+  switch (req.query.filter) {
+    case "top":
+      creators = await Creator.find().sort({ "messages.length": 1 }).limit(3);
+      break;
+    case "all":
+      creators = await Creator.find()
+        .limit(limit)
+        .skip(page * limit);
+      break;
+    case "search":
+      creators = await Creator.find({
+        username: { $regex: `${req.query.searchQuery}`, $options: "gi" },
+      })
+        .limit(limit)
+        .skip(page * limit);
+      break;
+    default:
+      return next(new ErrorHandler("Missing query parameters", 400));
+  }
+
+  res.status(200).json({
+    success: true,
+    creators,
   });
 });
