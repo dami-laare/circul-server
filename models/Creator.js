@@ -7,9 +7,11 @@ const creatorSchema = new mongoose.Schema({
     type: String,
     // required: true,
     // unique: true,
+    trim: true,
   },
   name: {
     type: String,
+    trim: true,
   },
   email_verified: {
     type: Boolean,
@@ -22,9 +24,11 @@ const creatorSchema = new mongoose.Schema({
   },
   username: {
     type: String,
+    trim: true,
   },
   imageUrl: {
     type: String,
+    trim: true,
   },
   bio: String,
   location: {
@@ -34,13 +38,14 @@ const creatorSchema = new mongoose.Schema({
   website: {
     type: String,
     default: "",
+    trim: true,
   },
   bank_details: {},
   profileComplete: {
     type: Boolean,
     default: false,
   },
-  resetPasaswordToken: String,
+  resetPasswordToken: String,
   resetPasswordExpires: Date,
   token: String,
   firstSignUp: {
